@@ -1,18 +1,36 @@
-FROM public.ecr.aws/amazonlinux/amazonlinux:latest
+# 依存関係のインストールステージ
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY my-tech-blog/package.json my-tech-blog/package-lock.json* ./
+RUN npm ci
 
-# Update installed packages and install Apache
-RUN yum update -y && \
- yum install -y httpd
+# ビルドステージ
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY my-tech-blog/ .
+RUN npm run build
 
-# Write hello world message
-RUN echo 'Hello World!' > /var/www/html/index.html
+# 本番用実行ステージ
+FROM node:20-alpine AS runner
+WORKDIR /app
 
-# Configure Apache
-RUN echo 'mkdir -p /var/run/httpd' >> /root/run_apache.sh && \
- echo 'mkdir -p /var/lock/httpd' >> /root/run_apache.sh && \
- echo '/usr/sbin/httpd -D FOREGROUND' >> /root/run_apache.sh && \
- chmod 755 /root/run_apache.sh
+ENV NODE_ENV production
 
-EXPOSE 80
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-CMD /root/run_apache.sh
+# Next.jsのstandaloneモードの出力をコピー
+# standaloneモードでは、.next/standaloneディレクトリ内に必要なファイルがすべて含まれている
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
+
+CMD ["node", "server.js"]
