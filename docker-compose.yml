@@ -1,0 +1,21 @@
+services:
+  app:
+    build:
+      context: ./my-tech-blog
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - type: bind
+        source: .
+        target: /usr/src/app
+      - type: volume
+        source: app-node_modules
+        target: /usr/src/app/my-tech-blog/node_modules
+    # networks:
+    #   - microfrontends
+    command: ["npm", "run", "dev"]
+volumes:
+  app-node_modules:
+    driver: local
+    name: app-node_modules
