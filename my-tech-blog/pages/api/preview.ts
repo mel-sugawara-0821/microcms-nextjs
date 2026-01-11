@@ -19,7 +19,7 @@ const handlePreviewRequest: NextApiHandler = async (req, res) => {
   
 
 
-  const content = await fetch(apiUrl, {
+  const content: any = await fetch(apiUrl, {
     headers: { 'X-MICROCMS-API-KEY': process.env.API_KEY || '' },
   }).then((res) => res.json()).catch((error) => {
   console.log('apiUrl-1------------------');
@@ -33,13 +33,16 @@ const handlePreviewRequest: NextApiHandler = async (req, res) => {
     return res.status(404).json({ message: 'Invalid slug' });
   }
     console.log('apiUrl-3------------------');
-    console.log(type);
-    console.log(slug)
+    console.log(content);
 
 
 
   res.setPreviewData({ slug: content.id, draftKey });
+    console.log('apiUrl-4------------------');
+  
   res.writeHead(307, { Location: `/${type}/${slug}` });
+    console.log('apiUrl-5------------------');
+  
 //   res.writeHead(307, { Location: `/blogs` });
   
   res.end('Preview mode enabled');
