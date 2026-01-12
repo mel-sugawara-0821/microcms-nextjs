@@ -24,10 +24,12 @@ RUN npm install
 COPY . .
 
 # アプリケーションをビルド
-RUN npm run build
+# RUN npm run build
 
 # ポートを公開
 EXPOSE 3000
 
 # アプリケーションを起動
-CMD ["npm", "start"]
+# CMD ["npm", "start"]
+# RUN npm run dev
+CMD ["npm", "run", "dev"]
